@@ -1,0 +1,56 @@
+version: '3.8'
+
+services:
+  api:
+    build:
+      context: ./api
+      dockerfile: Dockerfile
+    container_name: api
+    ports:
+      - "8001:8001"
+    volumes:
+      - ./api:/app
+    depends_on:
+      - mariadb
+  api-2:
+    build:
+      context: ./api-2
+      dockerfile: Dockerfile
+    container_name: api-2
+    ports:
+      - "8002:8002"
+    volumes:
+      - ./api-2:/app
+    depends_on:
+      - mariadb
+
+  php:
+    build:
+      context: ./poke-front
+      dockerfile: Dockerfile
+    container_name: php
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./poke-front:/var/www/html
+    command: php artisan serve --host=0.0.0.0 --port=8000
+    depends_on:
+      - mariadb
+      - api
+      - api-2
+
+  mariadb:
+    image: mariadb:10.6
+    container_name: mariadb
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpassword
+      MYSQL_DATABASE: pokedex
+      MYSQL_USER: user
+      MYSQL_PASSWORD: password
+    ports:
+      - "3306:3306"
+    volumes:
+      - mariadb_data:/var/lib/mysql
+
+volumes:
+  mariadb_data:
